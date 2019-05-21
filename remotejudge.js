@@ -3,9 +3,6 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var auth = require('./auth')
 var app = express();
-var md = require('markdown-it')();
-var mk = require('markdown-it-katex');
-md.use(mk);
 last = {}
 token = {}
 const API = "https://www.luogu.org/api";
@@ -13,23 +10,32 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use('/remotejudge/', express.static(__dirname + "/node_modules"));
 app.use('/remotejudge/', express.static(__dirname + "/public"));
 
-function getProblem(pid) {
-    console.log(API + "/problem/detail/" + pid);
-    var data = request("GET", API + "/problem/detail/" + pid);
-    detail = JSON.parse(data.body.toString());
-    return detail.data;
-}
 function login(username, password) {
     token = JSON.parse(request("POST", API + "/OAuth2/accessToken", {
         json: {
             grant_type: 'password',
             client_id: auth.client_id,
             client_secret: auth.client_secret,
-            username: username,
-            password: password
+            username: username || auth.username,
+            password: password || auth.password
         }
     }).body.toString());
     console.log(token);
+}
+function getProblem(pid) {
+    console.log(API + "/problem/detail/" + pid);
+    if (auth.username && auth.password) {
+        login();
+        const t = token.access_token;
+        const Authorization = `Bearer ${t}`
+        var data = request("GET", API + "/problem/detail/" + pid, {
+            headers: {
+                'Authorization': Authorization
+            }
+        });
+    } else var data = request("GET", API + "/problem/detail/" + pid);
+    detail = JSON.parse(data.body.toString());
+    return detail.data;
 }
 function refreshToken() {
     var res = request("POST", API + '/OAuth2/authorize', {
@@ -84,25 +90,20 @@ function submitSolution(id, text, language = 0, enableO2 = false, username, pass
     }
     return rid;
 }
-app.post('/remotejudge/submit', function(req, res) {
+app.post('/remotejudge/submit', function (req, res) {
     console.log(req.body);
-    res.json({rid:submitSolution(req.body.pid, req.body.code, req.body.lang, false,req.body.username, req.body.password)});
+    res.redirect("https://www.luogu.org/recordnew/show/" + submitSolution(req.body.pid, req.body.code, req.body.lang, false, req.body.username, req.body.password))
+    //res.json({ rid: submitSolution(req.body.pid, req.body.code, req.body.lang, false, req.body.username, req.body.password) });
 })
-app.get('/remotejudge/getProblem', function(req, res) {
-    console.log(req.body);
-    res.json(getProblem(req.body.pid));
-})
-app.post('/remotejudge/getProblem', function(req, res) {
+app.get('/remotejudge/getProblem', function (req, res) {
     console.log(req.body);
     res.json(getProblem(req.body.pid));
 })
-app.get('/remotejudge/markdown', function(req, res) {
-    res.json({ html: md.render(req.body.markdown) })
+app.post('/remotejudge/getProblem', function (req, res) {
+    console.log(req.body);
+    res.json(getProblem(req.body.pid));
 })
-app.post('/remotejudge/markdown', function(req, res) {
-    res.json({ html: md.render(req.body.markdown) })
-})
-app.get('/remotejudge/getRemoteResult', function(req, res) {
+app.get('/remotejudge/getRemoteResult', function (req, res) {
     if (!req.body.rid) res.json({ code: 400, data: 'ERROR Record ID' });
     else {
         var data = request('GET', 'https://www.luogu.org/recordnew/show/' + req.body.rid);

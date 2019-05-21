@@ -18,7 +18,7 @@
 		}
 
 		h1, h2, h3, h4, h5 {
-		font-family: Georgia, Palatino, serif;
+		font-family: "Microsoft YaHei",Georgia, Palatino, serif;
 		}
 		h1, h2, h3, h4, h5, p , dl{
 		margin-bottom: 16px;
@@ -241,7 +241,7 @@
 		input,
 		select,
 		textarea {
-		font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+		font-family:"Microsoft YaHei","Helvetica Neue", Helvetica, Arial, sans-serif;
 		font-size: 13px;
 		font-weight: normal;
 		line-height: normal;

@@ -71,13 +71,12 @@
             var str = ""
             for (i in sample) {
                 j = Number(i) + 1;
-                str += '输入样例' + j + '\n```\n' + sample[i][0] + '\n```\n输出样例' + j + '\n```\n' + sample[i][1] + '\n```\n'
+                str += '输入样例' + j + '\n\n```\n\n' + sample[i][0] + '\n\n```\n\n输出样例' + j + '\n\n```\n\n' + sample[i][1] + '\n\n```\n\n'
             }
             return str;
         }
         function toMD(data) {
-            return `
-# ${data.Name}
+            return `# ${data.Name}
 ## 题目背景
 ${data.Background}
 ## 题目描述
@@ -89,8 +88,7 @@ ${data.OutputFormat}
 ## 样例
 ${readSample(data.Sample)}
 ## 说明
-${data.Hint}
-            `
+${data.Hint}`
         }
         function getP() {
             var id = document.getElementById('pid').value;
